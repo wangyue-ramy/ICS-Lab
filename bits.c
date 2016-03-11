@@ -2,7 +2,8 @@
  * CS:APP Data Lab 
  * 
  * <Please put your name and userid here>
- * 
+ * name: Wang Yue
+ * userid: 121160063 
  * bits.c - Source file with your solutions to the Lab.
  *          This is the file you will hand in to your instructor.
  *
@@ -171,7 +172,11 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  return 2;
+	int result, tmp;
+	result = x & y;
+	tmp = ~x & ~y;
+	result = ~result & ~tmp;
+	return result;
 }
 /* 
  * allEvenBits - return 1 if all even-numbered bits in word set to 1
@@ -181,7 +186,9 @@ int bitXor(int x, int y) {
  *   Rating: 2
  */
 int allEvenBits(int x) {
-  return 2;
+	x = x | 0xaa | (0xaa << 8) | (0xaa << 16) | (0xaa << 24);
+	x = x ^ 0xff ^ (0xff << 8) ^ (0xff << 16) ^ (0xff << 24);
+	return x == 0;
 }
 /* 
  * getByte - Extract byte n from word x
@@ -192,7 +199,9 @@ int allEvenBits(int x) {
  *   Rating: 2
  */
 int getByte(int x, int n) {
-  return 2;
+	n = n << 3;
+	x = x >> n & 0xff;  	
+	return x;
 }
 /* 
  * conditional - same as x ? y : z 
@@ -202,7 +211,9 @@ int getByte(int x, int n) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+	x = !!x;
+	x = ~x + 1;
+	return (y & x) | (z & ~x);
 }
 /* 
  * rotateLeft - Rotate x to the left by n
@@ -213,7 +224,11 @@ int conditional(int x, int y, int z) {
  *   Rating: 3 
  */
 int rotateLeft(int x, int n) {
-  return 2;
+	int tmp = x >> (0x1f & (32 + ~n + 1));
+	int mask = ~((~1 + 1) << n);
+	tmp &= mask;
+	x = (x << n) | tmp;
+	return x;
 }
 /* 
  * bang - Compute !x without using !
@@ -223,7 +238,9 @@ int rotateLeft(int x, int n) {
  *   Rating: 4 
  */
 int bang(int x) {
-  return 2;
+	int sign1 = (~x + 1) >> 31 & 1;
+	int sign2 = x >> 31 & 1;
+	return (sign1 | sign2) ^ 1;
 }
 /*
  * bitParity - returns 1 if x contains an odd number of 0's
@@ -233,7 +250,12 @@ int bang(int x) {
  *   Rating: 4
  */
 int bitParity(int x) {
-  return 2;
+	x ^= x >> 16;
+	x ^= x >> 8;
+	x ^= x >> 4;
+	x ^= x >> 2;
+	x ^= x >> 1;  
+	return x & 1;
 }
 /* 
  * greatestBitPos - return a mask that marks the position of the
@@ -244,7 +266,13 @@ int bitParity(int x) {
  *   Rating: 4 
  */
 int greatestBitPos(int x) {
-  return 2;
+	x = x | x >> 1;
+	x = x | x >> 2;
+	x = x | x >> 4;
+	x = x | x >> 8;
+	x = x | x >> 16;
+	x = x & ((~x >> 1) ^ (1 << 31));
+	return x;
 }
 /* 
  * divpwr2 - Compute x/(2^n), for 0 <= n <= 30
@@ -255,7 +283,9 @@ int greatestBitPos(int x) {
  *   Rating: 2
  */
 int divpwr2(int x, int n) {
-    return 2;
+ 	int offset = (1 << n) - 1;
+	int mask = x >> 31;
+   	return (x + (offset & mask)) >> n;
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -265,7 +295,15 @@ int divpwr2(int x, int n) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+	int diff = x ^ y;
+	diff |= diff >> 1;
+	diff |= diff >> 2;
+	diff |= diff >> 4;
+	diff |= diff >> 8;
+	diff |= diff >> 16;  	
+	diff &= ~(diff >> 1) | 0x80000000;
+	diff &= (x ^ 0x80000000) & (y ^ 0x7fffffff);
+	return !diff;
 }
 /*
  * ilog2 - return floor(log base 2 of x), where x > 0
@@ -275,7 +313,39 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4
  */
 int ilog2(int x) {
-  return 2;
+	int i, j, k, l, m;
+	
+	// set all to the right of the highest set bit to 1
+	x = x | (x >> 1);
+	x = x | (x >> 2);
+	x = x | (x >> 4);
+	x = x | (x >> 8);
+	x = x | (x >> 16);
+
+	// i = 0x55555555
+	i = 0x55 | (0x55 << 8);
+	i = i | (i << 16);
+
+	// j = 0x33333333
+	j = 0x33 | (0x33 << 8);
+	j = j | (j << 16);
+
+	// k = 0x0f0f0f0f
+	k = 0x0f | (0x0f << 8);
+	k = k | (k << 16);
+	
+	// l = 0x00ff00ff
+	l = 0xff | (0xff << 16);
+	
+	// m = 0x0000ffff	
+	m = 0xff | (0xff << 8);
+	x = (x & i) + ((x >> 1) & i);			//bit set count in every two bits
+	x = (x & j) + ((x >> 2) & j);			//count in every four bits
+	x = (x & k) + ((x >> 4) & k);			//count in every byte
+	x = (x & l) + ((x >> 8) & l);			//count in every two bytes
+	x = (x & m) + ((x >> 16) & m);			//count in every four bytes
+	x = x + ~0;								//the floor of logbase2
+  	return x;
 }
 /*
  * trueThreeFourths - multiplies by 3/4 rounding toward 0,
@@ -287,9 +357,18 @@ int ilog2(int x) {
  *   Max ops: 20
  *   Rating: 4
  */
-int trueThreeFourths(int x)
-{
-  return 2;
+int trueThreeFourths(int num) {
+	int y, s, n, x, mask, tmp, is_min_or_zero;
+	tmp = (0xff << 8) | 0xff;					//tmp = 0xffff
+	mask = (((0x7f << 8) | 0xff) << 16) | tmp;	//mask = 0x7fffffff
+	is_min_or_zero = !(num & mask);
+	s = -((num >> 31) & 1) + is_min_or_zero;
+	n = (num ^ s) - s;
+	x = n >> 2;
+	x = (x << 1) + x;
+	y = n & 3;
+	y = ((y << 1) + y) >> 2;
+	return (s ^ (x + y)) - s;
 }
 /* 
  * float_f2i - Return bit-level equivalent of expression (int) f
@@ -304,7 +383,36 @@ int trueThreeFourths(int x)
  *   Rating: 4
  */
 int float_f2i(unsigned uf) {
-  return 2;
+	int s, e, f;
+	s = (uf >> 31) & 1;
+	e = (uf >> 23) & 0xff;
+	f = uf & 0x007fffff;
+	
+	if (e == 255) {
+		return 0x80000000u;
+	}
+	else if (e == 0) {
+		e = e - 126 - 23;
+	} else {
+		e = e - 127 - 23;
+		f = f | 0x00800000;
+	}
+	if (e > 8 && f != 0) {
+		return 0x80000000u;	
+	}
+	while (e > 0) {
+		e--;
+		f <<= 1;
+	}
+	while (e < 0) {
+		e++;
+		f >>= 1;
+	}
+	if (!!s) {
+		return -f;
+	} else {
+		return f;
+	}
 }
 /* 
  * float_twice - Return bit-level equivalent of expression 2*f for
@@ -318,7 +426,24 @@ int float_f2i(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_twice(unsigned uf) {
-  return 2;
+	int s, e, f;
+	s = (uf >> 31) & 1;
+	e = (uf >> 23) & 0xff;
+	f = uf & 0x007fffff;
+	
+	if (e == 255) {
+		return uf;
+	}
+	else if (e == 0) {
+		if (f == 0) {
+			return s << 31;
+		} else {
+			return ((s << 31) | (f << 1));
+		}
+	} else {
+		return ((s << 31) | ((e + 1) << 23) | f);
+	}
+  	return 2;
 }
 /* 
  * float_abs - Return bit-level equivalent of absolute value of f for
@@ -332,5 +457,11 @@ unsigned float_twice(unsigned uf) {
  *   Rating: 2
  */
 unsigned float_abs(unsigned uf) {
-  return 2;
+	int e, f;
+	e = (uf >> 23) & 0xff;
+	f = uf & 0x007fffff;
+	if (e == 255 && f != 0) {
+		return uf;
+	}
+  	return uf & 0x7fffffff;
 }
