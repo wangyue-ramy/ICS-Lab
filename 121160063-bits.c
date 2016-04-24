@@ -443,7 +443,6 @@ unsigned float_twice(unsigned uf) {
 	} else {
 		return ((s << 31) | ((e + 1) << 23) | f);
 	}
-  	return 2;
 }
 /* 
  * float_abs - Return bit-level equivalent of absolute value of f for
